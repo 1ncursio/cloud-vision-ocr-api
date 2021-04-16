@@ -5,8 +5,7 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cross-env GOOGLE_APPLICATION_CREDENTIALS=\"c:/nodejs/cloud-vision-api-ocr/japanese-ocr-project-845e4807bdc6.json\" node main",
-    "dev": "nodemon index"
+    "dev": "cross-env GOOGLE_APPLICATION_CREDENTIALS=\"c:/nodejs/cloud-vision-api-ocr/server/japanese-ocr-project-845e4807bdc6.json\" nodemon index"
   },
   "keywords": [],
   "author": "",

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { css } from '@emotion/react';
+import axios from 'axios';
 
 const Home = () => {
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
@@ -89,7 +90,7 @@ const Home = () => {
 
   const onDetect = useCallback(async () => {
     // @ts-ignore
-    // const image = canvasRef.current.toDataURL('image/png');
+    const imageUrl = canvasRef.current.toDataURL('image/png');
     // try {
     //   // Read a local image as a text document
     //   const [result] = await client.batchAnnotateImages({
@@ -108,6 +109,8 @@ const Home = () => {
     // } catch (error) {
     //   console.error(error);
     // }
+    const response = await axios.post('http://localhost:3005/detection', { imageUrl });
+    console.log(response.data);
   }, [canvasRef.current]);
 
   return (
