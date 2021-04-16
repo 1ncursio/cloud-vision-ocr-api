@@ -25,4 +25,5 @@ yarn-error.log*
 japanese*.json
 *.png
 *.jpg
-*.jpeg
+*.
+uploads

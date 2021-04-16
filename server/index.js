@@ -36,13 +36,14 @@ app.get('/', (req, res) => {
 app.post('/detection', upload.single('image'), async (req, res) => {
   // console.log(req.body);
   try {
+    console.log(req.file.filename);
     const [result] = await client.batchAnnotateImages({
       requests: [
         {
           image: {
             // content: req.body.base64string,
             source: {
-              imageUri: req.body.base64string,
+              imageUri: `http://locahost:3005/${req.file.filename}`,
             },
           },
           features: [{ type: 'DOCUMENT_TEXT_DETECTION' }],
