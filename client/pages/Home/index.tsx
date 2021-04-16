@@ -90,7 +90,27 @@ const Home = () => {
 
   const onDetect = useCallback(async () => {
     // @ts-ignore
-    const imageUrl = canvasRef.current.toDataURL('image/png');
+    const imageUrl = canvasRef.current?.toBlob(
+      async (blob) => {
+        if (!blob) return;
+        // const url = URL.createObjectURL(blob);
+        console.log(blob);
+        // const arrayBuffer = await blob.arrayBuffer();
+        // const data = new Uint8Array(arrayBuffer);
+        // console.log(url);
+        // console.log(data);
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = async () => {
+          const base64string = reader.result;
+          console.log(base64string);
+          const response = await axios.post('http://localhost:3005/detection', { base64string });
+          console.log(response.data);
+        };
+      },
+      'image/png',
+      1
+    );
     // try {
     //   // Read a local image as a text document
     //   const [result] = await client.batchAnnotateImages({
@@ -109,8 +129,8 @@ const Home = () => {
     // } catch (error) {
     //   console.error(error);
     // }
-    const response = await axios.post('http://localhost:3005/detection', { imageUrl });
-    console.log(response.data);
+    // const response = await axios.post('http://localhost:3005/detection', { imageUrl });
+    // console.log(response.data);
   }, [canvasRef.current]);
 
   return (
