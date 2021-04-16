@@ -1,23 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const fs = require('fs').promises;
 const vision = require('@google-cloud/vision');
 const client = new vision.ImageAnnotatorClient();
-const multer = require('multer');
 
 const path = require('path');
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, 'uploads/');
-    },
-    filename: function (req, file, cb) {
-      // cb(null, new Date().valueOf() + path.extname(file.originalname));
-      cb(null, new Date().valueOf() + '.png');
-    },
-  }),
-});
 
 app.use(express.static('uploads'));
 app.use(
@@ -33,30 +20,32 @@ app.get('/', (req, res) => {
   return res.status(200).json({ success: true, message: 'hello server' });
 });
 
-app.post('/detection', upload.single('image'), async (req, res) => {
+app.post('/detection', async (req, res) => {
   // console.log(req.body);
   try {
-    console.log(req.file.filename);
+    // const file = await fs.readFile(`uploads/${req.file.filename}`);
+    // console.log(req.file.filename);
+    const { base64String } = req.body;
+    console.log(base64String.length);
     const [result] = await client.batchAnnotateImages({
       requests: [
         {
           image: {
-            // content: req.body.base64string,
-            source: {
-              imageUri: `http://locahost:3005/${req.file.filename}`,
-            },
+            content: base64String.split('base64,')[1],
+            // source: {
+            //   imageUri: `http://locahost:3005/${req.file.filename}`,
+            // },
           },
           features: [{ type: 'DOCUMENT_TEXT_DETECTION' }],
           imageContext: { languageHints: ['ja-t-i0-handwrit'] },
         },
       ],
     });
-    const fullTextAnnotation = result.fullTextAnnotation;
-    await fs.writeFile('result-url.json', JSON.stringify(result));
-    // const text = await fs.readFile('test.json');
-    // console.log(`Full text: ${fullTextAnnotation.text}`);
-    // res.json(fullTextAnnotation);
-    res.send('hello');
+    const fullTextAnnotation = result?.responses?.[0]?.fullTextAnnotation;
+    fullTextAnnotation.text = fullTextAnnotation?.text.replace(/\n/g, '');
+    // await fs.writeFile('result-url.json', JSON.stringify(result));
+    console.log(`Full text: ${fullTextAnnotation.text}`);
+    res.json(fullTextAnnotation);
   } catch (error) {
     console.error(error);
   }

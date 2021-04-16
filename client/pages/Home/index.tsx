@@ -5,12 +5,13 @@ import axios from 'axios';
 const Home = () => {
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [strokeWidth, setStrokeWidth] = useState<number>(5);
+  const [detectedText, setDetectedText] = useState<string>('');
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef(null);
 
-  const CANVAS_WIDTH = 700;
-  const CANVAS_HEIGHT = 700;
+  const CANVAS_WIDTH = 600;
+  const CANVAS_HEIGHT = 600;
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -88,41 +89,27 @@ const Home = () => {
     link.remove();
   }, [canvasRef.current]);
 
-  const onDetect = useCallback(async () => {
+  const onDetect = useCallback(() => {
     // @ts-ignore
     const imageUrl = canvasRef.current?.toBlob(async (blob) => {
       if (!blob) return;
-      const formData = new FormData();
-      formData.append('image', blob);
-      const response = await axios.post('http://localhost:3005/detection', formData, { headers: { 'content-type': 'multipart/form-data' } });
-      console.log(response.data);
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+
+      reader.onloadend = async () => {
+        const base64String = reader.result;
+        const response = await axios.post('http://localhost:3005/detection', { base64String });
+        console.log(response.data);
+        setDetectedText(response.data.text.replace(/\n/g, ''));
+      };
     });
-    // try {
-    //   // Read a local image as a text document
-    //   const [result] = await client.batchAnnotateImages({
-    //     requests: [
-    //       {
-    //         image: {
-    //           content: image,
-    //         },
-    //         features: [{ type: 'DOCUMENT_TEXT_DETECTION' }],
-    //         imageContext: { languageHints: ['ja-t-i0-handwrit'] },
-    //       },
-    //     ],
-    //   });
-    //   const fullTextAnnotation = result?.responses?.[0].fullTextAnnotation;
-    //   console.log(`Full text: ${fullTextAnnotation?.text}`);
-    // } catch (error) {
-    //   console.error(error);
-    // }
-    // const response = await axios.post('http://localhost:3005/detection', { imageUrl });
-    // console.log(response.data);
-  }, [canvasRef.current]);
+  }, [canvasRef.current, detectedText]);
 
   return (
     <>
       <canvas css={canvas} onMouseDown={startDrawing} onMouseUp={finishDrawing} onMouseMove={draw} ref={canvasRef}></canvas>
       <div css={controls}>
+        <div>단어 추측 : {detectedText}</div>
         <div css={controlsRange}>
           <input type="range" min="5" max="10" value={strokeWidth} step="0.5" onChange={onChangeRange} />
         </div>
