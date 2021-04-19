@@ -3,8 +3,12 @@ const cors = require('cors');
 const app = express();
 const vision = require('@google-cloud/vision');
 const client = new vision.ImageAnnotatorClient();
-
+const dotenv = require('dotenv');
 const path = require('path');
+
+const searchRouter = require('./routes/search');
+
+dotenv.config();
 
 app.use(express.static('uploads'));
 app.use(
@@ -50,6 +54,8 @@ app.post('/detection', async (req, res) => {
     console.error(error);
   }
 });
+
+app.use('/search', searchRouter);
 
 const PORT = process.env.PORT || 3005;
 

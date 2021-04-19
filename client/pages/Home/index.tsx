@@ -105,11 +105,18 @@ const Home = () => {
     });
   }, [canvasRef.current, detectedText]);
 
+  const apiTest = useCallback(async () => {
+    // encyclopedia
+    const { data } = await axios.get(`http://localhost:3005/search?query=${encodeURIComponent('테스트')}`);
+    console.log(data);
+  }, []);
+
   return (
     <>
       <canvas css={canvas} onMouseDown={startDrawing} onMouseUp={finishDrawing} onMouseMove={draw} ref={canvasRef}></canvas>
       <div css={controls}>
         <div>단어 추측 : {detectedText}</div>
+        <div onClick={apiTest}>API 테스트</div>
         <div css={controlsRange}>
           <input type="range" min="5" max="10" value={strokeWidth} step="0.5" onChange={onChangeRange} />
         </div>

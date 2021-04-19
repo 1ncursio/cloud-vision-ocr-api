@@ -27,3 +27,4 @@ japanese*.json
 *.jpg
 *.
 uploads
+.env
