@@ -8,7 +8,7 @@ const Home = () => {
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [strokeWidth, setStrokeWidth] = useState<number>(5);
   const [detectedText, setDetectedText] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<ISearchResult[]>([]);
+  const [searchResults, setSearchResults] = useState<ISearchResult>();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef(null);
@@ -143,11 +143,7 @@ const Home = () => {
           </div>
         </div>
       </div>
-      <div>
-        {searchResults.map((result) => (
-          <SearchResult data={result} />
-        ))}
-      </div>
+      <div>{searchResults && <SearchResult data={searchResults} key={searchResults.slug} />}</div>
     </div>
   );
 };

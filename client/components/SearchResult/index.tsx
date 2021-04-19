@@ -6,12 +6,17 @@ interface searchResultProps {
 }
 
 const SearchResult: FC<searchResultProps> = ({ data }: searchResultProps) => {
-  const { slug, jlpt } = data;
+  const {
+    jlpt,
+    japanese: [{ word, reading }],
+    senses: [{ english_definitions }],
+  } = data;
 
   return (
     <>
-      <div>뜻 : {slug}</div>
-      <div>JLPT 급수 : {jlpt[0]}</div>
+      <div>단어 : {`${word} (${reading})`}</div>
+      <div>뜻 : {english_definitions[0]}</div>
+      {jlpt[0] && <div>{`JLPT 급수 : ${jlpt[0]}`}</div>}
     </>
   );
 };

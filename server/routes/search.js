@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
     const {
       data: { data },
     } = await axios.get(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(keyword)}`);
-    res.status(200).json(data);
+    res.status(200).json(data[0]);
   } catch (error) {
     console.error(error);
     next(error);
