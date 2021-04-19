@@ -74,6 +74,7 @@ const Home = () => {
     contextRef.current.fillStyle = 'white';
     // @ts-ignore
     contextRef.current.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    setDetectedText('');
   }, [contextRef.current]);
 
   const onChangeRange = useCallback(

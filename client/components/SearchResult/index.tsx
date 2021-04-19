@@ -9,13 +9,13 @@ const SearchResult: FC<searchResultProps> = ({ data }: searchResultProps) => {
   const {
     jlpt,
     japanese: [{ word, reading }],
-    senses: [{ english_definitions }],
+    senses: [{ english_definitions: definitions }],
   } = data;
 
   return (
     <>
       <div>단어 : {`${word} (${reading})`}</div>
-      <div>뜻 : {english_definitions[0]}</div>
+      <div>뜻 : {definitions[0]}</div>
       {jlpt[0] && <div>{`JLPT 급수 : ${jlpt[0]}`}</div>}
     </>
   );
