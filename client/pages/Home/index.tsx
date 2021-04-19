@@ -1,11 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { css } from '@emotion/react';
 import axios from 'axios';
+import SearchResult from '@components/SearchResult';
+import { ISearchResult } from '@typings/ISearchResult';
 
 const Home = () => {
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [strokeWidth, setStrokeWidth] = useState<number>(5);
   const [detectedText, setDetectedText] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<ISearchResult[]>([]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef(null);
@@ -31,6 +34,10 @@ const Home = () => {
     contextRef.current = context;
   }, []);
 
+  useEffect(() => {
+    if (searchResults) console.log(searchResults);
+  }, [searchResults]);
+
   const startDrawing = useCallback(
     ({ nativeEvent }) => {
       const { offsetX, offsetY } = nativeEvent;
@@ -41,7 +48,7 @@ const Home = () => {
       contextRef.current.moveTo(offsetX, offsetY);
       setIsDrawing(true);
     },
-    [contextRef.current, isDrawing]
+    [contextRef.current, isDrawing],
   );
 
   const finishDrawing = useCallback(() => {
@@ -59,7 +66,7 @@ const Home = () => {
       // @ts-ignore
       contextRef.current.stroke();
     },
-    [contextRef.current, isDrawing]
+    [contextRef.current, isDrawing],
   );
 
   const onReset = useCallback(() => {
@@ -76,11 +83,11 @@ const Home = () => {
       // @ts-ignore
       contextRef.current.lineWidth = strokeWidth;
     },
-    [contextRef.current, strokeWidth]
+    [contextRef.current, strokeWidth],
   );
 
   const save = useCallback(() => {
-    // @ts-ignore
+    if (!canvasRef.current) return;
     const image = canvasRef.current.toDataURL('image/png');
     const link = document.createElement('a');
     link.href = image;
@@ -90,15 +97,16 @@ const Home = () => {
   }, [canvasRef.current]);
 
   const onDetect = useCallback(() => {
-    // @ts-ignore
-    const imageUrl = canvasRef.current?.toBlob(async (blob) => {
+    canvasRef.current?.toBlob(async (blob) => {
       if (!blob) return;
       const reader = new FileReader();
       reader.readAsDataURL(blob);
 
       reader.onloadend = async () => {
         const base64String = reader.result;
-        const response = await axios.post('http://localhost:3005/detection', { base64String });
+        const response = await axios.post('http://localhost:3005/detection', {
+          base64String,
+        });
         console.log(response.data);
         setDetectedText(response.data.text.replace(/\n/g, ''));
       };
@@ -106,29 +114,48 @@ const Home = () => {
   }, [canvasRef.current, detectedText]);
 
   const apiTest = useCallback(async () => {
-    // encyclopedia
-    const { data } = await axios.get(`http://localhost:3005/search?query=${encodeURIComponent('테스트')}`);
-    console.log(data);
-  }, []);
+    const { data } = await axios.get(`http://localhost:3005/search?keyword=${encodeURIComponent(detectedText)}`);
+    setSearchResults(data);
+  }, [detectedText, searchResults]);
 
   return (
-    <>
-      <canvas css={canvas} onMouseDown={startDrawing} onMouseUp={finishDrawing} onMouseMove={draw} ref={canvasRef}></canvas>
-      <div css={controls}>
-        <div>단어 추측 : {detectedText}</div>
-        <div onClick={apiTest}>API 테스트</div>
-        <div css={controlsRange}>
-          <input type="range" min="5" max="10" value={strokeWidth} step="0.5" onChange={onChangeRange} />
-        </div>
-        <div css={controlButtons}>
-          <button onClick={save}>Save</button>
-          <button onClick={onReset}>Reset</button>
-          <button onClick={onDetect}>Detect Text</button>
+    <div css={row}>
+      <div>
+        <canvas css={canvas} onMouseDown={startDrawing} onMouseUp={finishDrawing} onMouseMove={draw} ref={canvasRef} />
+        <div css={controls}>
+          <div>단어 추측 : {detectedText}</div>
+          <div css={controlsRange}>
+            <input type="range" min="5" max="10" value={strokeWidth} step="0.5" onChange={onChangeRange} />
+          </div>
+          <div css={controlButtons}>
+            <button type="button" onClick={save}>
+              Save
+            </button>
+            <button type="button" onClick={onReset}>
+              Reset
+            </button>
+            <button type="button" onClick={onDetect}>
+              Detect Text
+            </button>
+            <button type="button" onClick={apiTest}>
+              사전 검색
+            </button>
+          </div>
         </div>
       </div>
-    </>
+      <div>
+        {searchResults.map((result) => (
+          <SearchResult data={result} />
+        ))}
+      </div>
+    </div>
   );
 };
+
+const row = css`
+  display: flex;
+  gap: 16px;
+`;
 
 const canvas = css`
   border-radius: 15px;
