@@ -3,9 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
+  "config": {
+    "school": "c:/nodejs/cloud-vision-api-ocr/server/japanese-ocr-project-845e4807bdc6.json",
+    "desktop": "d:/programming/nodejs/cloud-vision-ocr-api/server/japanese-ocr-pro-1618551091958-fc2a6260144c.json",
+    "laptop": ""
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "cross-env GOOGLE_APPLICATION_CREDENTIALS=\"d:/programming/nodejs/cloud-vision-ocr-api/server/japanese-ocr-pro-1618551091958-fc2a6260144c.json\" nodemon index"
+    "dev": "cross-env GOOGLE_APPLICATION_CREDENTIALS=$npm_package_config_school nodemon index"
   },
   "keywords": [],
   "author": "",
