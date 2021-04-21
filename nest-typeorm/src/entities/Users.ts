@@ -1,9 +1,11 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Index,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Index('email', ['email'], { unique: true })
@@ -24,9 +26,9 @@ export class Users {
   @CreateDateColumn()
   createdAt: Date;
 
-  @CreateDateColumn()
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @CreateDateColumn()
+  @DeleteDateColumn()
   deletedAt: Date | null;
 }
