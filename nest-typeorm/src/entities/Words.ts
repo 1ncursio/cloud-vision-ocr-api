@@ -16,10 +16,15 @@ export class Words {
   @Column('varchar', { name: 'show_entry', unique: true, length: 10 })
   show_entry: string; // 후리가나-오쿠리가나 표기
 
-  japanese: string;
-
   @Column('tinyint', { name: 'level' })
   level: number; // JLPT 급수
+
+  // parts 배열 품사
+
+  @Column('varchar', { name: 'pron' }) // 한자포함 표기
+  pron: string;
+
+  // means 배열 의미
 
   @CreateDateColumn()
   createdAt: Date;

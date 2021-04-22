@@ -7,6 +7,10 @@ import { UsersService } from './users/users.service';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from './entities/Users';
+import { WordsController } from './words/words.controller';
+import { WordsService } from './words/words.service';
+import { WordsModule } from './words/words.module';
+import { Words } from './entities/Words';
 
 @Module({
   imports: [
@@ -17,13 +21,13 @@ import { Users } from './entities/Users';
       username: 'root',
       password: 'nodejsbook',
       database: 'test',
-      entities: [Users],
+      entities: [Users, Words],
       autoLoadEntities: true,
       synchronize: true,
+      charset: 'utf8mb4',
     }),
     UsersModule,
+    WordsModule,
   ],
-  controllers: [AppController, CatsController],
-  providers: [AppService, CatsService, UsersService],
 })
 export class AppModule {}
