@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 
 @Index('email', ['email'], { unique: true })
-@Entity({ schema: 'test', name: 'users' })
+@Entity({ schema: 'ocr', name: 'users' })
 export class Users {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
   id: number;
