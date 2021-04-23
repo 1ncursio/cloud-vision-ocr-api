@@ -13,4 +13,25 @@ export class WordsService {
   async getWords() {
     return await this.wordsRepository.find();
   }
+
+  async createWord(
+    entry: string,
+    showEntry: string,
+    level: number,
+    pron: string,
+  ) {
+    const exWord = await this.wordsRepository.findOne({ where: { entry } });
+    if (exWord) return false;
+
+    const word = await this.wordsRepository.save({
+      entry,
+      showEntry,
+      level,
+      pron,
+    });
+
+    console.log(word);
+
+    return true;
+  }
 }
