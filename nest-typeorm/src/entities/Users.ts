@@ -1,4 +1,5 @@
 import {
+  BeforeInsert,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
@@ -8,11 +9,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+// import { v4 as uuid } from 'uuid';
+
 @Index('email', ['email'], { unique: true })
 @Entity({ schema: 'ocr', name: 'users' })
 export class Users {
-  @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column('varchar', { name: 'email', unique: true, length: 30 })
   email: string;

@@ -6,13 +6,22 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
+  // @Get()
+  // getUsers(@Req() req) {
+  //   return req.user;
+  // }
+
   @Get()
   getUsers(@Req() req) {
-    return req.user;
+    return this.usersService.getUsers();
   }
 
   @Post()
   postUsers(@Body() data: JoinRequestDto) {
-    this.usersService.postUsers(data.email, data.nickname, data.password);
+    return this.usersService.postUsers(
+      data.email,
+      data.nickname,
+      data.password,
+    );
   }
 }

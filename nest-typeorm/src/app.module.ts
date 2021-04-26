@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { Users } from './entities/Users';
 import { WordsModule } from './words/words.module';
 import { Words } from './entities/Words';
+import { Parts } from './entities/Parts';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { Words } from './entities/Words';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      entities: [Users, Words],
+      entities: [Users, Words, Parts],
       autoLoadEntities: true,
       synchronize: true,
       charset: 'utf8mb4',
