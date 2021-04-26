@@ -1,30 +1,30 @@
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
 const app = express();
-const vision = require('@google-cloud/vision');
+const vision = require("@google-cloud/vision");
 const client = new vision.ImageAnnotatorClient();
-const dotenv = require('dotenv');
-const path = require('path');
+const dotenv = require("dotenv");
+const path = require("path");
 
-const searchRouter = require('./routes/search');
+const searchRouter = require("./routes/search");
 
 dotenv.config();
 
-app.use(express.static('uploads'));
+app.use(express.static("uploads"));
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-app.get('/', (req, res) => {
-  return res.status(200).json({ success: true, message: 'hello server' });
+app.get("/", (req, res) => {
+  return res.status(200).json({ success: true, message: "hello server" });
 });
 
-app.post('/detection', async (req, res) => {
+app.post("/detection", async (req, res) => {
   // console.log(req.body);
   try {
     // const file = await fs.readFile(`uploads/${req.file.filename}`);
@@ -35,18 +35,18 @@ app.post('/detection', async (req, res) => {
       requests: [
         {
           image: {
-            content: base64String.split('base64,')[1],
+            content: base64String.split("base64,")[1],
             // source: {
             //   imageUri: `http://locahost:3005/${req.file.filename}`,
             // },
           },
-          features: [{ type: 'DOCUMENT_TEXT_DETECTION' }],
-          imageContext: { languageHints: ['ja-t-i0-handwrit'] },
+          features: [{ type: "DOCUMENT_TEXT_DETECTION" }],
+          imageContext: { languageHints: ["ja-t-i0-handwrit"] },
         },
       ],
     });
     const fullTextAnnotation = result?.responses?.[0]?.fullTextAnnotation;
-    fullTextAnnotation.text = fullTextAnnotation?.text.replace(/\n/g, '');
+    fullTextAnnotation.text = fullTextAnnotation?.text.replace(/\n/g, "");
     // await fs.writeFile('result-url.json', JSON.stringify(result));
     console.log(`Full text: ${fullTextAnnotation.text}`);
     res.json(fullTextAnnotation);
@@ -55,7 +55,7 @@ app.post('/detection', async (req, res) => {
   }
 });
 
-app.use('/search', searchRouter);
+app.use("/search", searchRouter);
 
 const PORT = process.env.PORT || 3005;
 
