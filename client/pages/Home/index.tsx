@@ -54,6 +54,9 @@ const Home = () => {
   const finishDrawing = useCallback(() => {
     // @ts-ignore
     contextRef.current.closePath();
+    // @ts-ignore
+    contextRef.current.imageSmoothingQuality = 'high';
+    console.log(contextRef.current);
     setIsDrawing(false);
   }, [contextRef.current, isDrawing]);
 
