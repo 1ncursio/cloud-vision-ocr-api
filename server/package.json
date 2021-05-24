@@ -4,13 +4,13 @@
   "description": "",
   "main": "main.js",
   "config": {
-    "school": "c:/nodejs/cloud-vision-api-ocr/server/japanese-ocr-project-845e4807bdc6.json",
-    "desktop": "d:/programming/nodejs/cloud-vision-ocr-api/server/japanese-ocr-pro-1618551091958-fc2a6260144c.json",
+    "school": "c:/nodejs/cloud-vision-api-ocr/server/text-detection-project-314710-090719d12489.json",
+    "desktop": "d:/programming/nodejs/cloud-vision-ocr-api/server/text-detection-project-314710-090719d12489.json",
     "laptop": ""
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "cross-env GOOGLE_APPLICATION_CREDENTIALS=$npm_package_config_school nodemon index"
+    "dev": "nodemon app.js"
   },
   "keywords": [],
   "author": "",
@@ -18,9 +18,18 @@
   "dependencies": {
     "@google-cloud/vision": "^2.3.1",
     "axios": "^0.21.1",
+    "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "express-session": "^1.17.2",
+    "helmet": "^4.6.0",
+    "hpp": "^0.2.3",
+    "morgan": "^1.10.0",
+    "mysql2": "^2.2.5",
+    "passport": "^0.4.1",
+    "sequelize": "^6.6.2",
+    "sequelize-cli": "^6.2.0"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",

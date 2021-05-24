@@ -1,105 +1,75 @@
-const canvas = document.getElementById('jsCanvas');
-const ctx = canvas.getContext('2d');
-const range = document.getElementById('jsRange');
-const saveBtn = document.getElementById('jsSave');
-const resetBtn = document.getElementById('jsReset');
+const express = require('express');
+const app = express();
+const cors = require('cors');
+const hpp = require('hpp');
+const helmet = require('helmet');
+const vision = require('@google-cloud/vision');
+const client = new vision.ImageAnnotatorClient();
+const dotenv = require('dotenv');
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
+const path = require('path');
+const morgan = require('morgan');
+const passport = require('passport');
 
-const INITIAL_COLOR = '#2c2c2c';
-const CANVAS_SIZE = 700;
+const detectionRouter = require('./routes/detection');
+const searchRouter = require('./routes/search');
+const wordsRouter = require('./routes/words');
 
-canvas.width = CANVAS_SIZE;
-canvas.height = CANVAS_SIZE;
+dotenv.config();
 
-ctx.fillStyle = 'white';
-ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-ctx.strokeStyle = INITIAL_COLOR;
-ctx.fillStyle = INITIAL_COLOR;
-ctx.lineWidth = 2.5;
+const isProduction = process.env.NODE_ENV === 'production';
 
-let painting = false;
-let filling = false;
+app.set('port', process.env.PORT || 3005);
 
-function stopPainting() {
-  painting = false;
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser(process.env.COOKIE_SECRET));
+app.use(
+  session({
+    saveUninitialized: true,
+    resave: false,
+    secret: process.env.COOKIE_SECRET,
+    cookie: {
+      httpOnly: true,
+      secure: isProduction,
+      domain: isProduction && '.test.domain',
+    },
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+if (isProduction) {
+  app.use(morgan('combined'));
+  app.use(
+    cors({
+      origin: 'http://localhost:3000',
+      credentials: true,
+    })
+  );
+  app.use(helmet());
+  app.use(hpp());
+} else {
+  app.use(morgan('dev'));
+  app.use(
+    cors({
+      origin: 'http://localhost:3000',
+      credentials: true,
+    })
+  );
 }
 
-function startPainting() {
-  painting = true;
-}
+app.get('/', (req, res) => {
+  return res.status(200).json({ success: true, message: 'BACKEND TEST' });
+});
 
-function onMouseMove(event) {
-  const x = event.offsetX;
-  const y = event.offsetY;
-  if (!painting) {
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-  } else {
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  }
-}
+app.use('/detection', detectionRouter);
+app.use('/search', searchRouter);
+app.use('/words', wordsRouter);
 
-function handleColorClick(event) {
-  const color = event.target.style.backgroundColor;
-  ctx.strokeStyle = color;
-  ctx.fillStyle = color;
-}
-
-function handleRangeChange(event) {
-  const size = event.target.value;
-  ctx.lineWidth = size;
-}
-
-function handleModeClick() {
-  if (filling) {
-    filling = false;
-    mode.textContent = 'Fill';
-  } else {
-    filling = true;
-    mode.textContent = 'Paint';
-  }
-}
-
-function handleCanvasClick(event) {
-  if (filling) {
-    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-  }
-}
-
-function handleCM(event) {
-  event.preventDefault();
-}
-
-function handleSaveClick() {
-  const image = canvas.toDataURL('image/png');
-  const link = document.createElement('a');
-  link.href = image;
-  link.download = 'PaintJS';
-  link.click();
-}
-
-function handleResetClick() {
-  ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-}
-
-if (canvas) {
-  canvas.addEventListener('mousemove', onMouseMove);
-  canvas.addEventListener('mousedown', startPainting);
-  canvas.addEventListener('mouseup', stopPainting);
-  canvas.addEventListener('mouseleave', stopPainting);
-  canvas.addEventListener('click', handleCanvasClick);
-  canvas.addEventListener('contextmenu', handleCM);
-}
-
-if (range) {
-  range.addEventListener('input', handleRangeChange);
-}
-
-if (saveBtn) {
-  saveBtn.addEventListener('click', handleSaveClick);
-}
-
-if (resetBtn) {
-  resetBtn.addEventListener('click', handleResetClick);
-}
+app.listen(app.get('port'), () => {
+  console.log(`server listening ${app.get('port')} port ...`);
+});
