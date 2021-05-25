@@ -28,4 +28,4 @@ japanese*.json
 *.
 uploads
 .env
-text*.json
+gcp.json
