@@ -74,9 +74,8 @@ const Home = () => {
     if (!contextRef.current) return;
 
     contextRef.current.closePath();
-    console.log(contextRef.current);
     setIsDrawing(false);
-  }, [contextRef, isDrawing]);
+  }, [contextRef, setIsDrawing]);
 
   const draw = useCallback(
     ({ nativeEvent }) => {
@@ -124,7 +123,7 @@ const Home = () => {
     link.remove();
   }, [canvasRef]);
 
-  const onDetect = useCallback(async () => {
+  const onDetect = useCallback(() => {
     if (!canvasRef.current) return;
 
     canvasRef.current.toBlob(async (blob) => {
@@ -141,7 +140,14 @@ const Home = () => {
   const apiTest = useCallback(async () => {
     const { data } = await axios.get(`http://localhost:3005/search?keyword=${encodeURIComponent(detectedText)}`);
     setSearchResults(data);
-  }, [detectedText, searchResults]);
+  }, [detectedText, setDetectedText, setSearchResults]);
+
+  const onUploadImage = useCallback(async (e) => {
+    const imageFormData = new FormData();
+    imageFormData.append('image', e.target.files[0]);
+    const { data } = await axios.post('http://localhost:3005/detection', imageFormData);
+    console.log(data);
+  }, []);
 
   return (
     <div css={row}>
@@ -165,6 +171,7 @@ const Home = () => {
             <button type="button" onClick={apiTest}>
               사전 검색
             </button>
+            <input type="file" onChange={onUploadImage} />
           </div>
         </div>
       </div>
