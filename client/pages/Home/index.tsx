@@ -58,11 +58,18 @@ const Home = () => {
   }, [searchResults]);
 
   const startDrawing = useCallback(
-    ({ nativeEvent }) => {
+    (e) => {
       if (!contextRef.current) return;
+      const { nativeEvent, target } = e;
+
+      console.log('스타트');
 
       const { offsetX, offsetY } = nativeEvent;
-      // if (!contextRef) return;
+
+      const rect = target.getBoundingClientRect();
+
+      console.log({ nativeEvent, x: target.getBoundingClientRect() });
+
       contextRef.current.beginPath();
       contextRef.current.moveTo(offsetX, offsetY);
       setIsDrawing(true);
@@ -73,6 +80,8 @@ const Home = () => {
   const finishDrawing = useCallback(() => {
     if (!contextRef.current) return;
 
+    console.log('끝');
+
     contextRef.current.closePath();
     setIsDrawing(false);
   }, [contextRef, setIsDrawing]);
@@ -82,7 +91,12 @@ const Home = () => {
       if (!contextRef.current) return;
       if (!isDrawing) return;
 
+      console.log('그리는 중');
+
       const { offsetX, offsetY } = nativeEvent;
+
+      console.log({ nativeEvent });
+
       contextRef.current.lineTo(offsetX, offsetY);
       contextRef.current.stroke();
     },
@@ -152,7 +166,16 @@ const Home = () => {
   return (
     <div css={row}>
       <div>
-        <canvas css={canvas} onMouseDown={startDrawing} onMouseUp={finishDrawing} onMouseMove={draw} ref={canvasRef} />
+        <canvas
+          css={canvas}
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={finishDrawing}
+          ref={canvasRef}
+          onTouchStart={startDrawing}
+          onTouchMove={draw}
+          onTouchEnd={finishDrawing}
+        />
         <div css={controls}>
           <div>단어 추측 : {detectedText}</div>
           <div css={controlsRange}>
