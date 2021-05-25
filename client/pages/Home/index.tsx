@@ -11,10 +11,28 @@ const Home = () => {
   const [searchResults, setSearchResults] = useState<ISearchResult>();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const contextRef = useRef(null);
+  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
 
   const CANVAS_WIDTH = 600;
   const CANVAS_HEIGHT = 600;
+
+  const drawCrossLine = useCallback(() => {
+    if (!contextRef.current) return;
+
+    contextRef.current.lineWidth = 1;
+    contextRef.current.strokeStyle = 'gray';
+
+    contextRef.current.moveTo(CANVAS_WIDTH / 2, 0);
+    contextRef.current.lineTo(CANVAS_WIDTH / 2, CANVAS_HEIGHT);
+    contextRef.current.stroke();
+
+    contextRef.current.moveTo(0, CANVAS_HEIGHT / 2);
+    contextRef.current.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT / 2);
+    contextRef.current.stroke();
+
+    contextRef.current.strokeStyle = 'black';
+    contextRef.current.lineWidth = strokeWidth;
+  }, [contextRef]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -28,10 +46,11 @@ const Home = () => {
     if (!context) return;
     context.scale(2, 2);
     context.lineCap = 'round';
-    context.strokeStyle = 'black';
-    context.lineWidth = strokeWidth;
-    // @ts-ignore
+    context.beginPath();
+
     contextRef.current = context;
+
+    drawCrossLine();
   }, []);
 
   useEffect(() => {
@@ -40,54 +59,59 @@ const Home = () => {
 
   const startDrawing = useCallback(
     ({ nativeEvent }) => {
+      if (!contextRef.current) return;
+
       const { offsetX, offsetY } = nativeEvent;
       // if (!contextRef) return;
-      // @ts-ignore
       contextRef.current.beginPath();
-      // @ts-ignore
       contextRef.current.moveTo(offsetX, offsetY);
       setIsDrawing(true);
     },
-    [contextRef.current, isDrawing],
+    [contextRef, isDrawing],
   );
 
   const finishDrawing = useCallback(() => {
-    // @ts-ignore
+    if (!contextRef.current) return;
+
     contextRef.current.closePath();
-    // @ts-ignore
-    contextRef.current.imageSmoothingQuality = 'high';
     console.log(contextRef.current);
     setIsDrawing(false);
-  }, [contextRef.current, isDrawing]);
+  }, [contextRef, isDrawing]);
 
   const draw = useCallback(
     ({ nativeEvent }) => {
+      if (!contextRef.current) return;
       if (!isDrawing) return;
+
       const { offsetX, offsetY } = nativeEvent;
-      // @ts-ignore
       contextRef.current.lineTo(offsetX, offsetY);
-      // @ts-ignore
       contextRef.current.stroke();
     },
-    [contextRef.current, isDrawing],
+    [contextRef, isDrawing],
   );
 
   const onReset = useCallback(() => {
-    // @ts-ignore
+    if (!contextRef.current) return;
+
+    contextRef.current.beginPath();
+
     contextRef.current.fillStyle = 'white';
-    // @ts-ignore
     contextRef.current.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    drawCrossLine();
+
     setDetectedText('');
-  }, [contextRef.current]);
+  }, [contextRef]);
 
   const onChangeRange = useCallback(
     (e) => {
+      if (!contextRef.current) return;
+
       console.log(e.target);
       setStrokeWidth(e.target.value);
-      // @ts-ignore
       contextRef.current.lineWidth = strokeWidth;
     },
-    [contextRef.current, strokeWidth],
+    [contextRef, strokeWidth],
   );
 
   const save = useCallback(() => {
@@ -98,24 +122,21 @@ const Home = () => {
     link.download = 'PaintJS';
     link.click();
     link.remove();
-  }, [canvasRef.current]);
+  }, [canvasRef]);
 
-  const onDetect = useCallback(() => {
-    canvasRef.current?.toBlob(async (blob) => {
+  const onDetect = useCallback(async () => {
+    if (!canvasRef.current) return;
+
+    canvasRef.current.toBlob(async (blob) => {
       if (!blob) return;
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
 
-      reader.onloadend = async () => {
-        const base64String = reader.result;
-        const response = await axios.post('http://localhost:3005/detection', {
-          base64String,
-        });
-        console.log(response.data);
-        setDetectedText(response.data.text.replace(/\n/g, ''));
-      };
+      const imageFormData = new FormData();
+      imageFormData.append('image', blob);
+      const { data } = await axios.post('http://localhost:3005/detection', imageFormData);
+
+      setDetectedText(data.text.replace(/\n/g, ''));
     });
-  }, [canvasRef.current, detectedText]);
+  }, [canvasRef, detectedText]);
 
   const apiTest = useCallback(async () => {
     const { data } = await axios.get(`http://localhost:3005/search?keyword=${encodeURIComponent(detectedText)}`);

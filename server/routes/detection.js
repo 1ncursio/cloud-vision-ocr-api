@@ -1,19 +1,18 @@
 const express = require('express');
+const vision = require('@google-cloud/vision');
+const upload = require('../utils/upload');
 const router = express.Router();
 
+const client = new vision.ImageAnnotatorClient();
+
 // POST /detection
-router.post('/', async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
   try {
-    const { base64String } = req.body;
-    console.log(base64String.length);
     const [result] = await client.batchAnnotateImages({
       requests: [
         {
           image: {
-            content: base64String.split('base64,')[1],
-            // source: {
-            //   imageUri: `http://locahost:3005/${req.file.filename}`,
-            // },
+            content: req.file.buffer,
           },
           features: [{ type: 'DOCUMENT_TEXT_DETECTION' }],
           imageContext: { languageHints: ['ja-t-i0-handwrit'] },
