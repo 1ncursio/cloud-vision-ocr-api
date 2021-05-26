@@ -1,25 +1,26 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { css } from '@emotion/react';
 import axios from 'axios';
-import SearchResult from '@components/SearchResult';
-import { ISearchResult } from '@typings/ISearchResult';
+import produce from 'immer';
+
+const CANVAS_WIDTH = 600;
+const CANVAS_HEIGHT = 600;
 
 const Home = () => {
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
-  const [strokeWidth, setStrokeWidth] = useState<number>(5);
+  const [strokeWidth, setStrokeWidth] = useState<number>(10);
   const [detectedText, setDetectedText] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<ISearchResult>();
+
+  const [imageHistory, setImageHistory] = useState<HTMLImageElement[]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
 
-  const CANVAS_WIDTH = 600;
-  const CANVAS_HEIGHT = 600;
-
   const drawCrossLine = useCallback(() => {
     if (!contextRef.current) return;
 
-    contextRef.current.lineWidth = 1;
+    /* contextRef.current.lineWidth = 1;
     contextRef.current.strokeStyle = 'gray';
 
     contextRef.current.moveTo(CANVAS_WIDTH / 2, 0);
@@ -31,7 +32,7 @@ const Home = () => {
     contextRef.current.stroke();
 
     contextRef.current.strokeStyle = 'black';
-    contextRef.current.lineWidth = strokeWidth;
+    contextRef.current.lineWidth = strokeWidth; */
   }, [contextRef]);
 
   useEffect(() => {
@@ -48,14 +49,24 @@ const Home = () => {
     context.lineCap = 'round';
     context.beginPath();
 
+    context.lineWidth = strokeWidth;
+
     contextRef.current = context;
+
+    const canvasImage = new Image();
+    canvasImage.src = canvas.toDataURL();
+
+    setImageHistory((prev) => [...prev, canvasImage]);
+    console.log(imageHistory);
 
     drawCrossLine();
   }, []);
 
   useEffect(() => {
-    if (searchResults) console.log(searchResults);
-  }, [searchResults]);
+    if (contextRef.current && historyIndex > 0) {
+      contextRef.current.drawImage(imageHistory[historyIndex], 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    }
+  }, [contextRef, imageHistory, historyIndex]);
 
   const startDrawing = useCallback(
     (e) => {
@@ -78,24 +89,43 @@ const Home = () => {
   );
 
   const finishDrawing = useCallback(() => {
-    if (!contextRef.current) return;
+    if (!contextRef.current || !canvasRef.current) return;
 
     console.log('끝');
 
     contextRef.current.closePath();
     setIsDrawing(false);
-  }, [contextRef, setIsDrawing]);
+
+    if (historyIndex < imageHistory.length - 1) {
+      // setImageHistory(
+      //   produce((draft) => {
+      //     // draft.splice(0, historyIndex - 2);
+      //     draft.filter((v, i) => true);
+      //   }),
+      // );
+      setImageHistory(imageHistory.filter((v, i) => i <= historyIndex));
+      console.log('컷');
+    }
+
+    setHistoryIndex((prev) => prev + 1);
+
+    const canvasImage = new Image();
+    canvasImage.src = canvasRef.current.toDataURL();
+
+    setImageHistory((prev) => [...prev, canvasImage]);
+    console.log({ imageHistory, historyIndex });
+  }, [contextRef, canvasRef, setIsDrawing, setImageHistory, imageHistory, setHistoryIndex, historyIndex]);
 
   const draw = useCallback(
     ({ nativeEvent }) => {
       if (!contextRef.current) return;
       if (!isDrawing) return;
 
-      console.log('그리는 중');
+      // console.log('그리는 중');
 
       const { offsetX, offsetY } = nativeEvent;
 
-      console.log({ nativeEvent });
+      // console.log({ nativeEvent });
 
       contextRef.current.lineTo(offsetX, offsetY);
       contextRef.current.stroke();
@@ -106,15 +136,28 @@ const Home = () => {
   const onReset = useCallback(() => {
     if (!contextRef.current) return;
 
-    contextRef.current.beginPath();
-
     contextRef.current.fillStyle = 'white';
     contextRef.current.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    drawCrossLine();
+    // drawCrossLine();
+
+    // contextRef.current.lineWidth = strokeWidth;
 
     setDetectedText('');
-  }, [contextRef]);
+  }, [contextRef, strokeWidth, setDetectedText]);
+
+  const onUndo = useCallback(() => {
+    if (!contextRef.current || !canvasRef.current) return;
+    if (historyIndex < 0) return;
+    console.log({ imageHistory, historyIndex });
+
+    setHistoryIndex((prev) => prev - 1);
+
+    contextRef.current.fillStyle = 'white';
+    contextRef.current.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  }, [contextRef, canvasRef, setImageHistory, imageHistory, historyIndex, setHistoryIndex]);
+
+  const onRedo = useCallback(() => {}, []);
 
   const onChangeRange = useCallback(
     (e) => {
@@ -137,7 +180,7 @@ const Home = () => {
     link.remove();
   }, [canvasRef]);
 
-  const onDetect = useCallback(() => {
+  const onDetect = useCallback(async () => {
     if (!canvasRef.current) return;
 
     canvasRef.current.toBlob(async (blob) => {
@@ -147,14 +190,10 @@ const Home = () => {
       imageFormData.append('image', blob);
       const { data } = await axios.post('http://localhost:3005/detection', imageFormData);
 
-      setDetectedText(data.text.replace(/\n/g, ''));
+      console.log(data);
+      setDetectedText(data.text);
     });
   }, [canvasRef, detectedText]);
-
-  const apiTest = useCallback(async () => {
-    const { data } = await axios.get(`http://localhost:3005/search?keyword=${encodeURIComponent(detectedText)}`);
-    setSearchResults(data);
-  }, [detectedText, setDetectedText, setSearchResults]);
 
   const onUploadImage = useCallback(async (e) => {
     const imageFormData = new FormData();
@@ -166,6 +205,7 @@ const Home = () => {
   return (
     <div css={row}>
       <div>
+        {detectedText && <h1>{detectedText}</h1>}
         <canvas
           css={canvas}
           onMouseDown={startDrawing}
@@ -182,6 +222,12 @@ const Home = () => {
             <input type="range" min="5" max="10" value={strokeWidth} step="0.5" onChange={onChangeRange} />
           </div>
           <div css={controlButtons}>
+            <button type="button" onClick={onUndo}>
+              Undo
+            </button>
+            <button type="button" onClick={onRedo}>
+              Redo
+            </button>
             <button type="button" onClick={save}>
               Save
             </button>
@@ -191,14 +237,13 @@ const Home = () => {
             <button type="button" onClick={onDetect}>
               Detect Text
             </button>
-            <button type="button" onClick={apiTest}>
-              사전 검색
+            <button type="button" onClick={() => console.log({ imageHistory, historyIndex })}>
+              배열 확인
             </button>
             <input type="file" onChange={onUploadImage} />
           </div>
         </div>
       </div>
-      <div>{searchResults && <SearchResult data={searchResults} key={searchResults.slug} />}</div>
     </div>
   );
 };
@@ -206,6 +251,7 @@ const Home = () => {
 const row = css`
   display: flex;
   gap: 16px;
+  text-align: center;
 `;
 
 const canvas = css`
