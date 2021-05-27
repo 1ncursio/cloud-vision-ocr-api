@@ -16,6 +16,7 @@ const Home = () => {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+  const canvasImageRef = useRef<HTMLImageElement>(null);
 
   const drawCrossLine = useCallback(() => {
     if (!contextRef.current) return;
@@ -55,6 +56,8 @@ const Home = () => {
 
     const canvasImage = new Image();
     canvasImage.src = canvas.toDataURL();
+
+    canvasImageRef.current = canvasImage;
 
     setImageHistory((prev) => [...prev, canvasImage]);
     console.log(imageHistory);
@@ -157,7 +160,10 @@ const Home = () => {
     contextRef.current.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }, [contextRef, canvasRef, setImageHistory, imageHistory, historyIndex, setHistoryIndex]);
 
-  const onRedo = useCallback(() => {}, []);
+  const onRedo = useCallback(() => {
+    if (!contextRef.current || !canvasRef.current || historyIndex >= imageHistory.length - 1) return;
+    setHistoryIndex((prev) => prev + 1);
+  }, [contextRef, canvasRef, setHistoryIndex, historyIndex, imageHistory]);
 
   const onChangeRange = useCallback(
     (e) => {
