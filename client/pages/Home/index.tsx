@@ -3,12 +3,13 @@ import { css } from '@emotion/react';
 import axios from 'axios';
 import produce from 'immer';
 
-const CANVAS_WIDTH = 600;
-const CANVAS_HEIGHT = 600;
+const CANVAS_WIDTH = 400;
+const CANVAS_HEIGHT = 400;
+const CANVAS_SCALE = 1;
 
 const Home = () => {
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
-  const [strokeWidth, setStrokeWidth] = useState<number>(10);
+  const [strokeWidth, setStrokeWidth] = useState<number>(8);
   const [detectedText, setDetectedText] = useState<string>('');
 
   const [imageHistory, setImageHistory] = useState<HTMLImageElement[]>([]);
@@ -16,7 +17,7 @@ const Home = () => {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const canvasImageRef = useRef<HTMLImageElement>(null);
+  const canvasImageRef = useRef<HTMLImageElement | null>(null);
 
   const drawCrossLine = useCallback(() => {
     if (!contextRef.current) return;
@@ -39,14 +40,14 @@ const Home = () => {
   useEffect(() => {
     if (!canvasRef.current) return;
     const canvas: HTMLCanvasElement = canvasRef.current;
-    canvas.width = CANVAS_WIDTH * 2;
-    canvas.height = CANVAS_HEIGHT * 2;
+    canvas.width = CANVAS_WIDTH * CANVAS_SCALE;
+    canvas.height = CANVAS_HEIGHT * CANVAS_SCALE;
     canvas.style.width = `${CANVAS_WIDTH}px`;
     canvas.style.height = `${CANVAS_HEIGHT}px`;
 
     const context = canvas.getContext('2d');
     if (!context) return;
-    context.scale(2, 2);
+    context.scale(CANVAS_SCALE, CANVAS_SCALE);
     context.lineCap = 'round';
     context.beginPath();
 
@@ -208,6 +209,20 @@ const Home = () => {
     console.log(data);
   }, []);
 
+  const onKeyDownCanvas = useCallback(
+    (e) => {
+      console.log(e.key);
+      if (e.key === 'Z') {
+        console.log('z키 눌렀다');
+        if (e.ctrlKey) {
+          console.log('컨트롤도 눌렀다');
+          onUndo();
+        }
+      }
+    },
+    [onUndo],
+  );
+
   return (
     <div css={row}>
       <div>
@@ -221,6 +236,7 @@ const Home = () => {
           onTouchStart={startDrawing}
           onTouchMove={draw}
           onTouchEnd={finishDrawing}
+          onKeyPress={onKeyDownCanvas}
         />
         <div css={controls}>
           <div>단어 추측 : {detectedText}</div>

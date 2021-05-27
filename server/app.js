@@ -10,11 +10,20 @@ const path = require('path');
 const morgan = require('morgan');
 const passport = require('passport');
 
+const db = require('./models');
+
 const detectionRouter = require('./routes/detection');
 const searchRouter = require('./routes/search');
 const wordsRouter = require('./routes/words');
 
 dotenv.config();
+
+db.sequelize
+  .sync()
+  .then(() => {
+    console.log('MYSQL 연결 성공');
+  })
+  .catch(console.error);
 
 const isProduction = process.env.NODE_ENV === 'production';
 

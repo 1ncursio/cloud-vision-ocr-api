@@ -34,7 +34,7 @@ router.post('/', upload.single('image'), async (req, res) => {
             content: req.file.buffer,
           },
           features: [{ type: 'DOCUMENT_TEXT_DETECTION' }],
-          imageContext: { languageHints: ['ja-t-i0-handwrit'] },
+          imageContext: { languageHints: ['ja-t-i0-handwrit', 'ja'] },
         },
       ],
     });
