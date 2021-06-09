@@ -12,24 +12,24 @@ module.exports = class Word extends Model {
           primaryKey: true,
         },
         // hiragana katakana okurigana kanji level korean
+        kanji: {
+          type: Sequelize.STRING(30),
+          allowNull: true,
+        },
         hiragana: {
-          type: Sequelize.STRING(10),
-          allowNull: false,
+          type: Sequelize.STRING(30),
+          allowNull: true,
         },
         katakana: {
-          type: Sequelize.STRING(10),
+          type: Sequelize.STRING(30),
           allowNull: true,
         },
-        okurigana: {
-          type: Sequelize.STRING(10),
-          allowNull: true,
-        },
-        kanji: {
-          type: Sequelize.STRING(10),
-          allowNull: false,
-        },
+        // okurigana: {
+        //   type: Sequelize.STRING(10),
+        //   allowNull: true,
+        // },
         korean: {
-          type: Sequelize.STRING(10),
+          type: Sequelize.STRING(30),
           allowNull: false,
         },
         level: {
